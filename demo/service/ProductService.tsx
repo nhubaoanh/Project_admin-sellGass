@@ -75,6 +75,8 @@ export const ProductService = {
             }
             const data = res.json();
             console.log('✅ Product updated:', data);
+
+            
             return data;
         });
     },

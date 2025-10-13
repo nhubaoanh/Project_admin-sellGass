@@ -24,7 +24,7 @@ interface ProductModalProps {
     setFile: (file: File | null) => void;
 }
 
-export const ProductModal: React.FC<ProductModalProps> = ({ visible, product, categories, submitted, onHide, onSave, onInputChange, onInputNumberChange, onDropdownChange, onDateChange, setFile }) => {
+export const UserModal: React.FC<ProductModalProps> = ({ visible, product, categories, submitted, onHide, onSave, onInputChange, onInputNumberChange, onDropdownChange, onDateChange, setFile }) => {
     const handleSubmit = () => {
         onSave(product);
     };

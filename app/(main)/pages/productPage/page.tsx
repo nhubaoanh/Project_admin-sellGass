@@ -232,10 +232,21 @@ const Crud = () => {
 
 
   // xem lại 
+  // const onDropdownChange = (e: any, name: string) => {
+  //   const val = e.value;
+  //   setProduct((prev) => ({ ...prev, [name]: val }));
+  // };
   const onDropdownChange = (e: any, name: string) => {
-    const val = e.value;
-    setProduct((prev) => ({ ...prev, [name]: val }));
-  };
+    console.log(`Dropdown changed: ${name} = ${e.value}`);
+    setProduct((prev) => {
+        const updatedProduct = {
+            ...prev,
+            [name]: e.value
+        };
+        console.log('Updated product:', updatedProduct); // Kiểm tra product sau khi cập nhật
+        return updatedProduct;
+    });
+};
 
   const onDateChange = (e: { value: Date | null }, name: string) => {
     const val = e.value;

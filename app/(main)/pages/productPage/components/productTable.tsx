@@ -4,6 +4,7 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import React, { useState } from 'react';
 import { Demo } from '@/types';
+// import {Product} from "@/types"
 
 interface ProductTableProps {
     products: Demo.sanpham[];

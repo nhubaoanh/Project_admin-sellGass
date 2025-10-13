@@ -155,6 +155,18 @@ declare namespace Demo {
         tenloai: string;
     };
 
+    type nguoidung = {
+        manv: number;
+        hoten: string;
+        mavt: number;
+        sdt: string;
+        email: string;
+        lichlv: string;
+        matkhau: string;
+        active_flag: number;
+        lastUpdate_id: number;
+    };
+
     type ProductOrder = {
         id?: string;
         productCode?: string;

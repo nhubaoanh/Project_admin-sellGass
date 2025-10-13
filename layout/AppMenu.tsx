@@ -87,6 +87,11 @@ const AppMenu = () => {
                     to: '/pages/productPage'
                 },
                 {
+                    label: 'User',
+                    icon: 'pi pi-fw pi-pencil',
+                    to: '/pages/userPage'
+                },
+                {
                     label: 'Timeline',
                     icon: 'pi pi-fw pi-calendar',
                     to: '/pages/timeline'
@@ -102,7 +107,7 @@ const AppMenu = () => {
                     to: '/pages/empty'
                 }
             ]
-        },
+        }
         // {
         //     label: 'Hierarchy',
         //     items: [

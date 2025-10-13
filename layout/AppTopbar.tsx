@@ -2,15 +2,65 @@
 
 import Link from 'next/link';
 import { classNames } from 'primereact/utils';
-import React, { forwardRef, useContext, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, use, useContext, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { AppTopbarRef } from '@/types';
 import { LayoutContext } from './context/layoutcontext';
+import { userStorage, UserStorageItem } from '@/demo/service/userStorage';
+import { Dropdown } from 'primereact/dropdown';
+import { useRouter } from 'next/navigation';
+
+interface UserOption {
+    name: string;
+    code: string;
+}
+interface DropdownChangeEvent {
+    value: UserOption | null;
+}
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     const { layoutConfig, layoutState, onMenuToggle, showProfileSidebar } = useContext(LayoutContext);
     const menubuttonRef = useRef(null);
     const topbarmenuRef = useRef(null);
     const topbarmenubuttonRef = useRef(null);
+    const [user, setUser] = useState<UserStorageItem | null>(null);
+    const [selectedOption, setSelectedOption] = useState<UserOption | null>(null);
+    const [selectedCity, setSelectedCity] = useState(null);
+     const router = useRouter();
+    const userOptions: UserOption[] = [
+        { name: 'Profile', code: 'profile' },
+        { name: 'Settings', code: 'settings' },
+        { name: 'Logout', code: 'logout' }
+    ];
+
+    useEffect(() => {
+        fetUser();
+    }, []);
+
+    const fetUser = () => {
+        try {
+            const currentUser = userStorage.getCurrentUser();
+            console.log('Current User:', currentUser);
+            setUser(currentUser);
+        } catch (error) {
+            console.error('Error fetching user:', error);
+        }
+    };
+
+    // Xử lý khi chọn tùy chọn trong Dropdown
+    const handleOptionSelect = (e: DropdownChangeEvent) => {
+        setSelectedOption(e.value);
+        if (e.value?.code === 'logout') {
+            if (user?.userId) {
+                userStorage.removeUser(user.userId); // Truyền userId
+                console.log('User logged out, localStorage cleared');
+                router.push('/landing');
+            }
+        } else if (e.value?.code === 'profile') {
+            router.push('/profile'); // Chuyển hướng đến trang profile
+        } else if (e.value?.code === 'settings') {
+            router.push('/settings'); // Chuyển hướng đến trang settings
+        }
+    };
 
     useImperativeHandle(ref, () => ({
         menubutton: menubuttonRef.current,
@@ -34,10 +84,31 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
             </button>
 
             <div ref={topbarmenuRef} className={classNames('layout-topbar-menu', { 'layout-topbar-menu-mobile-active': layoutState.profileSidebarVisible })}>
+                <h2 className="align-items-center">{user?.username}</h2>
                 <button type="button" className="p-link layout-topbar-button">
                     <i className="pi pi-calendar"></i>
                     <span>Calendar</span>
                 </button>
+                <Dropdown
+                    value={selectedOption}
+                    onChange={handleOptionSelect}
+                    options={userOptions}
+                    optionLabel="name"
+                    placeholder="Select an option"
+                    className="w-full md:w-14rem"
+                    style={{
+                        borderRadius: '12px',
+                        border: '1px solid transparent',
+                        background: 'linear-gradient(#fff, #fff) padding-box, linear-gradient(45deg, #ff6b6b, #4ecdc4) border-box',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                    }}
+                    itemTemplate={(option) => (
+                        <div className="flex align-items-center gap-2">
+                            <i className={option.code === 'profile' ? 'pi pi-user' : option.code === 'settings' ? 'pi pi-cog' : 'pi pi-sign-out'} />
+                            <span>{option.name}</span>
+                        </div>
+                    )}
+                />{' '}
                 <button type="button" className="p-link layout-topbar-button">
                     <i className="pi pi-user"></i>
                     <span>Profile</span>
