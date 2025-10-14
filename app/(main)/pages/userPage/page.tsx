@@ -2,7 +2,6 @@
 import { Toast } from 'primereact/toast';
 import { DataTable } from 'primereact/datatable';
 import React, { use, useEffect, useRef, useState } from 'react';
-import { ProductService } from '../../../../demo/service/ProductService';
 import { Demo } from '@/types';
 import { UserHeader } from './components/userHeader';
 import { UserTable } from './components/userTable';
@@ -10,7 +9,7 @@ import { UserModal } from './components/userModal';
 import { UserService } from '@/demo/service/UserService';
 
 const Crud = () => {
-    let emptyProduct: Demo.nguoidung = {
+    let emptyUser: Demo.nguoidung = {
         manv: 0,
         hoten: '',
         mavt: 0,
@@ -24,12 +23,11 @@ const Crud = () => {
 
     const [users, setUsers] = useState<Demo.nguoidung[]>([]);
     const [productDialog, setProductDialog] = useState(false);
-    const [user, setUser] = useState<Demo.nguoidung>(emptyProduct);
+    const [user, setUser] = useState<Demo.nguoidung>(emptyUser);
     const [selectedUsers, setSelectedUsers] = useState<Demo.nguoidung[] | null>(null);
     const [submitted, setSubmitted] = useState(false);
     const [globalFilter, setGlobalFilter] = useState('');
-    // const [categories, setCategories] = useState<Demo.danhmuc[]>([]);
-    const [file, setFile] = useState<File | null>(null);
+    const [location, setLocation] = useState<Demo.vitri[]>([]);
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
 
@@ -42,117 +40,130 @@ const Crud = () => {
             setUsers(data as any);
             // console.log('data', data);
         });
+
+        UserService.getLocation().then((loc) => {
+            setLocation(loc);
+            console.log('loc _ma vi tris cua mik : ', loc);
+        });
         
     };
 
     const openNew = () => {
-        setUser(emptyProduct);
+        setUser(emptyUser);
         setSubmitted(false);
         setProductDialog(true);
-        setFile(null);
     };
 
     const hideDialog = () => {
         setSubmitted(false);
         setProductDialog(false);
-        setFile(null);
     };
 
-    // const saveProduct = async (user: Demo.nguoidung) => {
-    //     setSubmitted(true);
-    //     if (!user.hoten.trim()) {
-    //         toast.current?.show({
-    //             severity: 'error',
-    //             summary: 'Lỗi',
-    //             detail: 'Tên nguoi dung là bắt buộc',
-    //             life: 3000
-    //         });
-    //         return;
-    //     }
-
-    //     let _users = [...users];
-    //     let _user = { ...user };
-
-    //     try {
-           
-    //         if (_user.manv) {
-    //             const updatedProduct = await ProductService.updateProduct(_product.masp, _product);
-    //             const index = findIndexById(_product.masp);
-    //             _products[index] = updatedProduct;
-    //             toast.current?.show({
-    //                 severity: 'success',
-    //                 summary: 'Thành công',
-    //                 detail: 'Sản phẩm đã được cập nhật',
-    //                 life: 3000
-    //             });
-    //             console.log('updatedProduct', updatedProduct);
-    //         } else {
-    //             const newProduct = await ProductService.createProduct(_product);
-    //             _products.push(newProduct);
-    //             toast.current?.show({
-    //                 severity: 'success',
-    //                 summary: 'Thành công',
-    //                 detail: 'Sản phẩm đã được tạo',
-    //                 life: 3000
-    //             });
-    //         }
-
-    //         setProducts(_products);
-    //         setProductDialog(false);
-    //         setProduct(emptyProduct);
-    //         setFile(null);
-    //         fetchData();
-    //     } catch (error) {
-    //         console.error('Save product failed', error);
-    //         toast.current?.show({
-    //             severity: 'error',
-    //             summary: 'Lỗi',
-    //             detail: 'Không thể lưu sản phẩm!',
-    //             life: 3000
-    //         });
-    //     }
-    // };
-
-    const editUser = (user: Demo.nguoidung) => {
-        setUser({ ...user });
-        setProductDialog(true);
-        setFile(null);
-    };
-
-    const deleteUser = async (user: Demo.nguoidung) => {
-        try {
-            await UserService.deleteUser(user.manv);
-            let _users = users.filter((val) => val.manv !== user.manv);
-            setUsers(_users);
-            setUser(emptyProduct);
-            toast.current?.show({
-                severity: 'success',
-                summary: 'Thành công',
-                detail: 'nhan vien đã được xóa',
-                life: 3000
-            });
-            fetchData();
-        } catch (error) {
-            console.error('Delete product failed', error);
+    const saveProduct = async (user: Demo.nguoidung) => {
+        setSubmitted(true);
+        if (!user.hoten.trim()) {
             toast.current?.show({
                 severity: 'error',
                 summary: 'Lỗi',
-                detail: 'Không thể xóa sản phẩm',
+                detail: 'Tên nguoi dung là bắt buộc',
+                life: 3000
+            });
+            return;
+        }
+
+        let _users = [...users];
+        let _user = { ...user };
+
+        try {
+           
+            if (_user.manv) {
+                const updatedProduct = await UserService.updateUser(_user.manv, _user);
+                const index = findIndexById(_user.manv);
+                _users[index] = updatedProduct;
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Thành công',
+                    detail: 'Sản phẩm đã được cập nhật',
+                    life: 3000
+                });
+                console.log('updatedProduct', updatedProduct);
+            } else {
+                const newProduct = await UserService.createUser(_user);
+                _users.push(newProduct);
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Thành công',
+                    detail: 'Sản phẩm đã được tạo',
+                    life: 3000
+                });
+            }
+
+            setUsers(_users);
+            setProductDialog(false);
+            setUser(emptyUser);
+            // setFile(null);
+            fetchData();
+        } catch (error) {
+            console.error('Save product failed', error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Lỗi',
+                detail: 'Không thể lưu sản phẩm!',
                 life: 3000
             });
         }
     };
 
-    // const findIndexById = (id: number) => {
-    //     let index = -1;
-    //     for (let i = 0; i < products.length; i++) {
-    //         if (products[i].masp === id) {
-    //             index = i;
-    //             break;
-    //         }
-    //     }
-    //     return index;
-    // };
+    const editUser = (user: Demo.nguoidung) => {
+        setUser({ ...user });
+        setProductDialog(true);
+    };
+
+    const deleteUser = async (user: Demo.nguoidung) => {
+        try {
+            // Gọi service và nhận data (phải return affectedRows từ UserService)
+            const result = await UserService.deleteUser(user.manv);
+
+            // Kiểm tra affectedRows từ server (giả định UserService trả về)
+            if (!result || result.affectedRows === 0) {
+                throw new Error(result?.message || 'Không xóa được - 0 rows affected');
+            }
+
+            // Chỉ cập nhật UI nếu thành công thực
+            let _users = users.filter((val) => val.manv !== user.manv);
+            setUsers(_users);
+            setUser(emptyUser); // Sửa từ emptyProduct → emptyUser
+            toast.current?.show({
+                severity: 'success',
+                summary: 'Thành công',
+                detail: 'Nhân viên đã được xóa',
+                life: 3000
+            });
+
+            fetchData(); // Reload để đồng bộ với CSDL
+            // console.log('Xóa thành công:', result);
+        } catch (error: any) {
+            console.error('Delete user failed:', error); // Sửa từ 'product'
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Lỗi',
+                detail: error.message || 'Không thể xóa nhân viên', // Sửa từ 'sản phẩm'
+                life: 3000
+            });
+            // Không cập nhật store nếu lỗi → giữ nguyên dữ liệu cũ
+        }
+    };
+
+    const findIndexById = (id: number) => {
+        let index = -1;
+        for (let i = 0; i < users.length; i++) {
+            if (users[i].manv === id) {
+                index = i;
+                break;
+            }
+        }
+        return index;
+    };
 
     const exportCSV = () => {
         dt.current?.exportCSV();
@@ -203,22 +214,17 @@ const Crud = () => {
         setUser((prev) => ({ ...prev, [name]: val }));
     };
 
-    // xem lại
-    // const onDropdownChange = (e: any, name: string) => {
-    //   const val = e.value;
-    //   setProduct((prev) => ({ ...prev, [name]: val }));
-    // };
-    // const onDropdownChange = (e: any, name: string) => {
-    //     console.log(`Dropdown changed: ${name} = ${e.value}`);
-    //     setProduct((prev) => {
-    //         const updatedProduct = {
-    //             ...prev,
-    //             [name]: e.value
-    //         };
-    //         console.log('Updated product:', updatedProduct); // Kiểm tra product sau khi cập nhật
-    //         return updatedProduct;
-    //     });
-    // };
+    const onDropdownChange = (e: any, name: string) => {
+        console.log(`Dropdown changed: ${name} = ${e.value}`);
+        setUser((prev) => {
+            const updatedUser = {
+                ...prev,
+                [name]: e.value
+            };
+            console.log('Updated product:', updatedUser); // Kiểm tra product sau khi cập nhật
+            return updatedUser;
+        });
+    };
 
     // const onDateChange = (e: { value: Date | null }, name: string) => {
     //     const val = e.value;
@@ -232,19 +238,18 @@ const Crud = () => {
                     <Toast ref={toast} />
                     <UserHeader onNew={openNew} onDeleteSelected={deleteSelectedUsers} onExport={exportCSV} globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} selectedUsers={selectedUsers} />
                     <UserTable users={users} selectedUsers={selectedUsers} setSelectedUsers={setSelectedUsers} globalFilter={globalFilter} onEdit={editUser} onDelete={deleteUser} onDeleteSelected={deleteSelectedUsers} />
-                    {/* <UserModal
+                    <UserModal
                         visible={productDialog}
-                        product={product}
-                        categories={categories}
+                        user={user}
+                        location={location}
                         submitted={submitted}
                         onHide={hideDialog}
                         onSave={saveProduct}
                         onInputChange={onInputChange}
                         onInputNumberChange={onInputNumberChange}
                         onDropdownChange={onDropdownChange}
-                        onDateChange={onDateChange}
-                        setFile={setFile}
-                    /> */}
+
+                    />
                 </div>
             </div>
         </div>

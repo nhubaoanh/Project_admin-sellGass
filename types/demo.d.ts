@@ -167,6 +167,22 @@ declare namespace Demo {
         lastUpdate_id: number;
     };
 
+    type vitri = {
+        mavt: number;
+        tenvt: string;
+    }
+
+    type Order = {
+        madh: number;
+        makh: number;
+        ngaydat: string;
+        tongtien: number;
+        matrangthai: number;
+        diachi_giao: string;
+        items: OrderItem[];
+        paymentMethod: string;
+    };
+
     type ProductOrder = {
         id?: string;
         productCode?: string;

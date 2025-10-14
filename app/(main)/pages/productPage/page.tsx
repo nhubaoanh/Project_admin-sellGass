@@ -231,11 +231,6 @@ const Crud = () => {
   };
 
 
-  // xem lại 
-  // const onDropdownChange = (e: any, name: string) => {
-  //   const val = e.value;
-  //   setProduct((prev) => ({ ...prev, [name]: val }));
-  // };
   const onDropdownChange = (e: any, name: string) => {
     console.log(`Dropdown changed: ${name} = ${e.value}`);
     setProduct((prev) => {
