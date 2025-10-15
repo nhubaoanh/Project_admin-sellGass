@@ -8,6 +8,9 @@ import { LayoutContext } from './context/layoutcontext';
 import { userStorage, UserStorageItem } from '@/demo/service/userStorage';
 import { Dropdown } from 'primereact/dropdown';
 import { useRouter } from 'next/navigation';
+import { Calendar } from 'primereact/calendar';
+import { Button } from 'primereact/button';
+import { Dialog } from 'primereact/dialog';
 
 interface UserOption {
     name: string;
@@ -24,8 +27,9 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     const topbarmenubuttonRef = useRef(null);
     const [user, setUser] = useState<UserStorageItem | null>(null);
     const [selectedOption, setSelectedOption] = useState<UserOption | null>(null);
-    const [selectedCity, setSelectedCity] = useState(null);
-     const router = useRouter();
+    const [visible, setVisible] = useState(false);
+    const [date, setDate] = useState<Date | null>(null);
+    const router = useRouter();
     const userOptions: UserOption[] = [
         { name: 'Profile', code: 'profile' },
         { name: 'Settings', code: 'settings' },
@@ -69,10 +73,11 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     }));
 
     return (
-        <div className="layout-topbar">
+        <div className="layout-topbar" style={{ backgroundColor: 'var(--indigo-400)', color: 'var(--primary-color-text)', padding: '0 1rem' }}>
             <Link href="/" className="layout-topbar-logo">
-                <img src={`/layout/images/logo-${layoutConfig.colorScheme !== 'light' ? 'white' : 'dark'}.svg`} width="47.22px" height={'35px'} alt="logo" />
-                <span>NHUBAOANH-SHOP GASS</span>
+                {/* <img src={`/layout/images/logo-${layoutConfig.colorScheme !== 'light' ? 'white' : 'dark'}.svg`} width="47.22px" height={'35px'} alt="logo" /> */}
+                <i className="pi pi-spin pi-bitcoin" style={{ fontSize: '3rem' }}></i>
+                <span style={{ fontSize: '1.2rem', marginLeft: '1rem' }}>NHUBAOANH-SHOP GASS</span>
             </Link>
 
             <button ref={menubuttonRef} type="button" className="p-link layout-menu-button layout-topbar-button" onClick={onMenuToggle}>
@@ -84,11 +89,24 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
             </button>
 
             <div ref={topbarmenuRef} className={classNames('layout-topbar-menu', { 'layout-topbar-menu-mobile-active': layoutState.profileSidebarVisible })}>
-                <h2 className="align-items-center">{user?.username}</h2>
-                <button type="button" className="p-link layout-topbar-button">
-                    <i className="pi pi-calendar"></i>
-                    <span>Calendar</span>
-                </button>
+                <span style={{ alignContent: 'center', color: 'var(--text-white)', marginTop: '0.3rem', fontSize: '14px' }}>User Name : {user?.username}</span>
+                <>
+                    <Button type="button" className="p-link layout-topbar-button m-2" onClick={() => setVisible(true)}>
+                        <i className="pi pi-calendar"></i>
+                        <span>Calendar</span>
+                    </Button>
+                    <Button className="p-link layout-topbar-button m-2">
+                        <i className="pi pi-bell"></i>
+                    </Button>
+
+                    <Dialog header="Select a Date" visible={visible} onHide={() => setVisible(false)} style={{ width: '30vw' }}>
+                        <Calendar value={date} onChange={(e) => setDate(e.value || null)} showIcon dateFormat="dd/mm/yy" showButtonBar />
+                        <div style={{ marginTop: '1rem' }}>
+                            <Button label="Close" icon="pi pi-times" onClick={() => setVisible(false)} />
+                            {date && <p>Selected Date: {new Date(date).toLocaleDateString()}</p>}
+                        </div>
+                    </Dialog>
+                </>
                 <Dropdown
                     value={selectedOption}
                     onChange={handleOptionSelect}
@@ -104,21 +122,11 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
                     }}
                     itemTemplate={(option) => (
                         <div className="flex align-items-center gap-2">
-                            <i className={option.code === 'profile' ? 'pi pi-user' : option.code === 'settings' ? 'pi pi-cog' : 'pi pi-sign-out'} />
+                            <i className={option.code === 'profile' ? 'pi pi-user' : option.code === 'settings' ? 'pi pi-spin pi-cog' : 'pi pi-sign-out'} />
                             <span>{option.name}</span>
                         </div>
                     )}
-                />{' '}
-                <button type="button" className="p-link layout-topbar-button">
-                    <i className="pi pi-user"></i>
-                    <span>Profile</span>
-                </button>
-                <Link href="/documentation">
-                    <button type="button" className="p-link layout-topbar-button">
-                        <i className="pi pi-cog"></i>
-                        <span>Settings</span>
-                    </button>
-                </Link>
+                />
             </div>
         </div>
     );

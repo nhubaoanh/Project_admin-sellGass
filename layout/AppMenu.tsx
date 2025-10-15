@@ -57,8 +57,8 @@ const AppMenu = () => {
             items: [
                 {
                     label: 'Landing',
-                    icon: 'pi pi-fw pi-globe',
-                    to: '/landing'
+                    icon: 'pi pi-fw pi-spin pi-globe',
+                    to: '/landing',
                 },
                 {
                     label: 'Auth',
@@ -69,11 +69,11 @@ const AppMenu = () => {
                             icon: 'pi pi-fw pi-sign-in',
                             to: '/auth/login'
                         },
-                        {
-                            label: 'Error',
-                            icon: 'pi pi-fw pi-times-circle',
-                            to: '/auth/error'
-                        },
+                        // {
+                        //     label: 'Error',
+                        //     icon: 'pi pi-fw pi-times-circle',
+                        //     to: '/auth/error'
+                        // },
                         {
                             label: 'Access Denied',
                             icon: 'pi pi-fw pi-lock',
@@ -83,13 +83,18 @@ const AppMenu = () => {
                 },
                 {
                     label: 'Product',
-                    icon: 'pi pi-fw pi-pencil',
+                    icon: 'pi pi-fw pi-amazon',
                     to: '/pages/productPage'
                 },
                 {
                     label: 'User',
-                    icon: 'pi pi-fw pi-pencil',
+                    icon: 'pi pi-fw pi-user-edit',
                     to: '/pages/userPage'
+                },
+                {
+                    label: 'Order',
+                    icon: 'pi pi-truck',
+                    to: '/pages/manageOrder/order'
                 },
                 {
                     label: 'Timeline',

@@ -5,25 +5,6 @@ import { Dialog } from 'primereact/dialog';
 import React, { useState } from 'react';
 import { Demo } from '@/types';
 
-interface OrderItem {
-    // Giả sử cấu trúc của OrderItem dựa trên ngữ cảnh chung (có thể điều chỉnh nếu có thêm chi tiết)
-    masp: number;
-    tensp: string;
-    soluong: number;
-    gia: number;
-    // Thêm các trường khác nếu cần
-}
-
-// interface Order {
-//     madh: number;
-//     makh: number;
-//     ngaydat: string;
-//     tongtien: number;
-//     matrangthai: number;
-//     diachi_giao: string;
-//     items: OrderItem[];
-//     paymentMethod: string;
-// }
 
 interface OrderTableProps {
     orders: Demo.Order[];
@@ -38,6 +19,7 @@ interface OrderTableProps {
 export const OrderTable: React.FC<OrderTableProps> = ({ orders, selectedOrders, setSelectedOrders, globalFilter, onEdit, onDelete, onDeleteSelected }) => {
     const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
     const [orderToDelete, setOrderToDelete] = useState<Demo.Order | null>(null);
+    const [expandedRows, setExpandedRows] = useState<any>(null);
 
     const formatCurrency = (value: number | string | null | undefined) => {
         if (value == null || isNaN(Number(value))) return 'N/A';
@@ -49,42 +31,42 @@ export const OrderTable: React.FC<OrderTableProps> = ({ orders, selectedOrders, 
 
     const idBodyTemplate = (rowData: Demo.Order) => (
         <>
-            <span className="p-column-title">Mã ĐH</span>
+            <span className="p-column-title">Code order</span>
             {rowData.madh}
         </>
     );
 
     const customerIdBodyTemplate = (rowData: Demo.Order) => (
         <>
-            <span className="p-column-title">Mã KH</span>
+            <span className="p-column-title">Code custommer</span>
             {rowData.makh}
         </>
     );
 
     const dateBodyTemplate = (rowData: Demo.Order) => (
         <>
-            <span className="p-column-title">Ngày Đặt</span>
+            <span className="p-column-title">Date set</span>
             {rowData.ngaydat}
         </>
     );
 
     const totalBodyTemplate = (rowData: Demo.Order) => (
         <>
-            <span className="p-column-title">Tổng Tiền</span>
+            <span className="p-column-title">Total Price</span>
             {formatCurrency(rowData.tongtien)}
         </>
     );
 
     const statusBodyTemplate = (rowData: Demo.Order) => (
         <>
-            <span className="p-column-title">Mã Trạng Thái</span>
+            <span className="p-column-title">Status</span>
             {rowData.matrangthai}
         </>
     );
 
     const addressBodyTemplate = (rowData: Demo.Order) => (
         <>
-            <span className="p-column-title">Địa Chỉ Giao</span>
+            <span className="p-column-title">Address</span>
             {rowData.diachi_giao}
         </>
     );
@@ -99,7 +81,7 @@ export const OrderTable: React.FC<OrderTableProps> = ({ orders, selectedOrders, 
 
     const paymentBodyTemplate = (rowData: Demo.Order) => (
         <>
-            <span className="p-column-title">Phương Thức Thanh Toán</span>
+            <span className="p-column-title">PaymentMethod</span>
             {rowData.paymentMethod}
         </>
     );
@@ -136,6 +118,31 @@ export const OrderTable: React.FC<OrderTableProps> = ({ orders, selectedOrders, 
         </>
     );
 
+    const rowExpansionTemplate = (order: Demo.Order) => {
+        return (
+            <div className="p-3">
+                <h6>Detail order</h6>
+                <DataTable value={order.items} responsiveLayout="scroll" size="small">
+                    <Column field="masp" header="Code product" style={{ width: '8rem' }} />
+                    <Column field="tensp" header="Name product" style={{ width: '15rem' }} />
+                    <Column field="soluong" header="Quantity" style={{ width: '8rem' }} />
+                    <Column
+                        field="gia"
+                        header="Giá"
+                        body={(rowData) =>
+                            Number(rowData.dongia).toLocaleString('vi-VN', {
+                                style: 'currency',
+                                currency: 'VND'
+                            })
+                        }
+                        style={{ width: '10rem' }}
+                    />
+                </DataTable>
+            </div>
+        );
+    };
+
+
     return (
         <>
             <DataTable
@@ -152,16 +159,20 @@ export const OrderTable: React.FC<OrderTableProps> = ({ orders, selectedOrders, 
                 globalFilter={globalFilter}
                 emptyMessage="Không tìm thấy đơn hàng."
                 responsiveLayout="scroll"
+                expandedRows={expandedRows}
+                onRowToggle={(e) => setExpandedRows(e.data)}
+                rowExpansionTemplate={rowExpansionTemplate}
             >
+                <Column expander style={{ width: '3rem' }} />
                 <Column selectionMode="multiple" headerStyle={{ width: '4rem' }} />
-                <Column field="madh" header="Mã ĐH" sortable body={idBodyTemplate} headerStyle={{ minWidth: '8rem' }} />
-                <Column field="makh" header="Mã KH" sortable body={customerIdBodyTemplate} headerStyle={{ minWidth: '8rem' }} />
-                <Column field="ngaydat" header="Ngày Đặt" sortable body={dateBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
-                <Column field="tongtien" header="Tổng Tiền" sortable body={totalBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
-                <Column field="matrangthai" header="Trạng Thái" sortable body={statusBodyTemplate} headerStyle={{ minWidth: '8rem' }} />
-                <Column field="diachi_giao" header="Địa Chỉ Giao" body={addressBodyTemplate} sortable headerStyle={{ minWidth: '15rem' }} />
-                <Column field="items" header="Số Lượng Items" body={itemsBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
-                <Column field="paymentMethod" header="Phương Thức TT" body={paymentBodyTemplate} sortable headerStyle={{ minWidth: '12rem' }} />
+                <Column field="madh" header="Code order" sortable body={idBodyTemplate} headerStyle={{ minWidth: '8rem' }} />
+                <Column field="makh" header="customer code" sortable body={customerIdBodyTemplate} headerStyle={{ minWidth: '8rem' }} />
+                <Column field="ngaydat" header="Booking date" sortable body={dateBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
+                <Column field="tongtien" header="Total amount" sortable body={totalBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
+                <Column field="matrangthai" header="Status" sortable body={statusBodyTemplate} headerStyle={{ minWidth: '8rem' }} />
+                <Column field="diachi_giao" header="Delivery address" body={addressBodyTemplate} sortable headerStyle={{ minWidth: '15rem' }} />
+                <Column field="items" header="Quantity Items" body={itemsBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
+                <Column field="paymentMethod" header="Payment method" body={paymentBodyTemplate} sortable headerStyle={{ minWidth: '12rem' }} />
                 <Column header="Actions" body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
             </DataTable>
 
