@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
@@ -7,11 +7,11 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { Dialog } from 'primereact/dialog';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { classNames } from 'primereact/utils';
 import { Calendar } from 'primereact/calendar';
+import { classNames } from 'primereact/utils';
 import { Demo } from '@/types';
 import { ProductService } from '@/demo/service/ProductService';
-// import ProductService from ''; // API service
+import { CustomerService } from '@/demo/service/CustomerService';
 
 interface OrderModalProps {
     visible: boolean;
@@ -19,17 +19,55 @@ interface OrderModalProps {
     submitted: boolean;
     onHide: () => void;
     onSave: (order: Demo.Order) => void;
-    onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { value: any } }, name: string) => void;
+    onInputChange: (e: any, name: string) => void;
     onInputNumberChange: (e: any, name: string) => void;
     onDropdownChange: (e: any, name: string) => void;
 }
 
 export const OrderModal: React.FC<OrderModalProps> = ({ visible, order, submitted, onHide, onSave, onInputChange, onInputNumberChange, onDropdownChange }) => {
-    const [rowProductOptions, setRowProductOptions] = useState<{ [key: number]: Demo.sanpham[] }>({});
+    const [rowProductOptions, setRowProductOptions] = useState<{
+        [key: number]: Demo.sanpham[];
+    }>({});
+    const [customerInfo, setCustomerInfo] = useState<Demo.CustomerCheckRequest>({
+        makh: order.makh || 0,
+        hoten: '',
+        sdt: '',
+        diachi: ''
+    });
+
+    // ✅ Cập nhật tổng tiền khi items thay đổi
+    useEffect(() => {
+        const total = order.items?.reduce((sum, item) => sum + (item.dongia || 0), 0) || 0;
+        onInputNumberChange({ value: total }, 'tongtien');
+    }, [order.items]);
+
+    const handleItemChange = (value: any, field: string, index: number) => {
+        const updatedItems = [...(order.items || [])];
+        updatedItems[index][field] = value;
+
+        // Tự động cập nhật đơn giá nếu có thay đổi giá hoặc số lượng
+        if (['soluong', 'gia'].includes(field)) {
+            const gia = updatedItems[index].gia || 0;
+            const soluong = updatedItems[index].soluong || 1;
+            updatedItems[index].dongia = gia * soluong;
+        }
+
+        onInputChange({ target: { value: updatedItems } }, 'items');
+    };
+
+    const handleAddItem = () => {
+        const newItem = { masp: 0, tensp: '', soluong: 1, gia: 0, dongia: 0 };
+        onInputChange({ target: { value: [...(order.items || []), newItem] } }, 'items');
+    };
+
+    const handleDeleteItem = (index: number) => {
+        const newItems = order.items.filter((_, i) => i !== index);
+        onInputChange({ target: { value: newItems } }, 'items');
+    };
 
     const handleSubmit = () => {
         if (!order.ngaydat || isNaN(new Date(order.ngaydat).getTime())) {
-            console.error('Invalid date format for ngaydat:', order.ngaydat);
+            alert('Ngày đặt không hợp lệ!');
             return;
         }
         onSave(order);
@@ -47,22 +85,6 @@ export const OrderModal: React.FC<OrderModalProps> = ({ visible, order, submitte
         { label: 'Đã hủy', value: 4 }
     ];
 
-    const handleItemChange = (value: any, field: string, index: number) => {
-        const updatedItems = [...order.items];
-        updatedItems[index][field] = value;
-        onInputChange({ target: { value: updatedItems } }, 'items');
-    };
-
-    const handleAddItem = () => {
-        const newItems = [...(order.items || []), { masp: 0, tensp: '', soluong: 1, gia: 0 }];
-        onInputChange({ target: { value: newItems } }, 'items');
-    };
-
-    const handleDeleteItem = (index: number) => {
-        const newItems = order.items.filter((_, i) => i !== index);
-        onInputChange({ target: { value: newItems } }, 'items');
-    };
-
     const userDialogFooter = (
         <>
             <Button label="Hủy" icon="pi pi-times" text onClick={onHide} />
@@ -71,38 +93,69 @@ export const OrderModal: React.FC<OrderModalProps> = ({ visible, order, submitte
     );
 
     return (
-        <Dialog visible={visible} style={{ width: '800px' }} header={order.madh ? 'Cập nhật đơn hàng' : 'Thêm đơn hàng mới'} modal className="p-fluid" footer={userDialogFooter} onHide={onHide}>
+        <Dialog visible={visible} style={{ width: '850px' }} header={order.madh ? 'Cập nhật đơn hàng' : 'Thêm đơn hàng mới'} modal className="p-fluid" footer={userDialogFooter} onHide={onHide}>
+            {/* === THÔNG TIN KHÁCH HÀNG === */}
             <div className="field">
-                <label htmlFor="makh">Mã khách hàng</label>
-                <InputNumber id="makh" value={order.makh} onValueChange={(e) => onInputNumberChange(e, 'makh')} />
+                <label htmlFor="hoten">Tên khách hàng</label>
+                <InputText id="hoten" value={customerInfo.hoten} onChange={(e) => setCustomerInfo({ ...customerInfo, hoten: e.target.value })} placeholder="Nhập tên khách hàng" />
             </div>
 
             <div className="field">
-                <label htmlFor="ngaydat">Ngày đặt</label>
-                <Calendar
-                    id="ngaydat"
-                    value={order.ngaydat ? new Date(order.ngaydat) : null}
-                    onChange={(e) => {
-                        const newValue = e.value ? new Date(e.value).toISOString().slice(0, 19).replace('T', ' ') : '';
-                        onInputChange({ target: { value: newValue } }, 'ngaydat');
-                    }}
-                    dateFormat="yy-mm-dd"
-                    showTime
-                    hourFormat="24"
-                    placeholder="Chọn ngày và giờ"
-                    className={classNames({ 'p-invalid': submitted && !order.ngaydat })}
-                />
-                {submitted && !order.ngaydat && <small className="p-error">Ngày đặt là bắt buộc.</small>}
+                <label htmlFor="sdt">Số điện thoại</label>
+                <InputText id="sdt" value={customerInfo.sdt} onChange={(e) => setCustomerInfo({ ...customerInfo, sdt: e.target.value })} placeholder="Nhập số điện thoại" />
             </div>
 
             <div className="field">
-                <label htmlFor="tongtien">Tổng tiền</label>
-                <InputNumber id="tongtien" value={order.tongtien} onValueChange={(e) => onInputNumberChange(e, 'tongtien')} mode="currency" currency="VND" locale="vi-VN" />
+                <label htmlFor="diachi">Địa chỉ</label>
+                <InputTextarea id="diachi" rows={2} value={customerInfo.diachi} onChange={(e) => setCustomerInfo({ ...customerInfo, diachi: e.target.value })} placeholder="Nhập địa chỉ khách hàng" />
             </div>
 
-            <div className="field">
-                <label htmlFor="matrangthai">Trạng thái</label>
-                <Dropdown id="matrangthai" value={order.matrangthai} options={statusOptions} onChange={(e) => onDropdownChange(e, 'matrangthai')} placeholder="Chọn trạng thái" className="w-full" />
+            <Button
+                label="Kiểm tra khách hàng"
+                icon="pi pi-search"
+                className="p-button-sm mb-3"
+                onClick={async () => {
+                    if (!customerInfo.hoten || !customerInfo.sdt || !customerInfo.diachi) {
+                        alert('Vui lòng nhập đủ thông tin khách hàng!');
+                        return;
+                    }
+
+                    try {
+                        const result = await CustomerService.getCustomerInfo(customerInfo);
+                        if (result?.data?.makh) {
+                            onInputNumberChange({ value: result.data.makh }, 'makh');
+                            alert(`Khách hàng đã có hoặc đã được thêm mới! Mã KH: ${result.data.makh}`);
+                        } else {
+                            alert('Không lấy được mã khách hàng.');
+                        }
+                    } catch (err) {
+                        console.error('Lỗi kiểm tra khách hàng:', err);
+                        alert('Có lỗi xảy ra khi gọi API kiểm tra khách hàng!');
+                    }
+                }}
+            />
+
+            {/* === THÔNG TIN ĐƠN HÀNG === */}
+            <div className="grid grid-cols-2 gap-3">
+                <div className="field">
+                    <label htmlFor="ngaydat">Ngày đặt</label>
+                    <Calendar
+                        id="ngaydat"
+                        value={order.ngaydat ? new Date(order.ngaydat) : null}
+                        onChange={(e) => {
+                            const value = e.value ? new Date(e.value).toISOString().slice(0, 19).replace('T', ' ') : '';
+                            onInputChange({ target: { value } }, 'ngaydat');
+                        }}
+                        showTime
+                        hourFormat="24"
+                        dateFormat="yy-mm-dd"
+                    />
+                </div>
+
+                <div className="field">
+                    <label htmlFor="matrangthai">Trạng thái</label>
+                    <Dropdown id="matrangthai" value={order.matrangthai} options={statusOptions} onChange={(e) => onDropdownChange(e, 'matrangthai')} placeholder="Chọn trạng thái" />
+                </div>
             </div>
 
             <div className="field">
@@ -115,23 +168,26 @@ export const OrderModal: React.FC<OrderModalProps> = ({ visible, order, submitte
                 <label className="mb-2 block font-medium">Chi tiết sản phẩm</label>
                 <DataTable value={order.items || []} responsiveLayout="scroll">
                     <Column
-                        field="masp"
+                        field="tensp"
                         header="Tên sản phẩm"
                         body={(rowData, options) => (
                             <Dropdown
                                 value={rowData.masp}
-                                options={rowProductOptions[options.rowIndex]?.map((p) => ({ label: p.tensp, value: p.masp })) || []}
+                                options={
+                                    rowProductOptions[options.rowIndex]?.map((p) => ({
+                                        label: p.tensp,
+                                        value: p.masp
+                                    })) || []
+                                }
                                 placeholder="Chọn sản phẩm"
                                 className="w-full"
                                 onFocus={async () => {
-                                    // Gọi API khi mở dropdown
                                     if (!rowProductOptions[options.rowIndex]) {
-                                        try {
-                                            const products = await ProductService.getProdctNew();
-                                            setRowProductOptions((prev) => ({ ...prev, [options.rowIndex]: products }));
-                                        } catch (err) {
-                                            console.error('Lấy sản phẩm thất bại', err);
-                                        }
+                                        const products = await ProductService.getProdctNew();
+                                        setRowProductOptions((prev) => ({
+                                            ...prev,
+                                            [options.rowIndex]: products
+                                        }));
                                     }
                                 }}
                                 onChange={(e) => {
@@ -139,21 +195,43 @@ export const OrderModal: React.FC<OrderModalProps> = ({ visible, order, submitte
                                     if (selected) {
                                         handleItemChange(selected.masp, 'masp', options.rowIndex);
                                         handleItemChange(selected.tensp, 'tensp', options.rowIndex);
-                                        handleItemChange(selected.gia, 'gia', options.rowIndex);
+                                        handleItemChange(Number(selected.gia), 'gia', options.rowIndex);
+
+                                        // Tính lại đơn giá
+                                        const qty = rowData.soluong || 1;
+                                        handleItemChange(qty * Number(selected.gia), 'dongia', options.rowIndex);
                                     }
                                 }}
                             />
                         )}
                     />
-                    <Column field="soluong" header="Số lượng" body={(rowData, options) => <InputNumber value={rowData.soluong} onValueChange={(e) => handleItemChange(e.value || 0, 'soluong', options.rowIndex)} min={1} />} />
+
                     <Column
-                        field="dongia"
-                        header="Giá (VND)"
-                        body={(rowData, options) => <InputNumber value={rowData.gia} onValueChange={(e) => handleItemChange(e.value || 0, 'gia', options.rowIndex)} mode="currency" currency="VND" locale="vi-VN" />}
+                        field="soluong"
+                        header="Số lượng"
+                        body={(rowData, options) => (
+                            <InputNumber
+                                value={rowData.soluong}
+                                onValueChange={(e) => {
+                                    const newQty = e.value || 1;
+                                    handleItemChange(newQty, 'soluong', options.rowIndex);
+                                }}
+                                min={1}
+                            />
+                        )}
                     />
+
+                    <Column field="dongia" header="Đơn giá (VND)" body={(rowData) => <InputNumber value={rowData.dongia || 0} mode="currency" currency="VND" locale="vi-VN" disabled />} />
+
                     <Column header="" body={(_, options) => <Button icon="pi pi-trash" className="p-button-danger p-button-rounded p-button-sm" onClick={() => handleDeleteItem(options.rowIndex)} />} />
                 </DataTable>
-                <Button label="Add item" icon="pi pi-plus" className="mt-2" onClick={handleAddItem} />
+
+                <Button label="Thêm sản phẩm" icon="pi pi-plus" className="mt-2" onClick={handleAddItem} />
+            </div>
+
+            <div className="field">
+                <label htmlFor="tongtien">Tổng tiền</label>
+                <InputNumber id="tongtien" value={order.tongtien || 0} mode="currency" currency="VND" locale="vi-VN" disabled />
             </div>
 
             <div className="field">

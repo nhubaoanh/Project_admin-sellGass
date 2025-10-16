@@ -74,7 +74,7 @@ export const OrderTable: React.FC<OrderTableProps> = ({ orders, selectedOrders, 
     const itemsBodyTemplate = (rowData: Demo.Order) => (
         <>
             <span className="p-column-title">Items</span>
-            {rowData.items.length} sản phẩm
+            {rowData.items ? rowData.items.length : 0} sản phẩm
             {/* Nếu muốn hiển thị chi tiết, có thể dùng Tooltip hoặc expand row */}
         </>
     );

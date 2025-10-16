@@ -170,7 +170,7 @@ declare namespace Demo {
     type vitri = {
         mavt: number;
         tenvt: string;
-    }
+    };
 
     type Order = {
         madh: number;
@@ -181,6 +181,27 @@ declare namespace Demo {
         diachi_giao: string;
         items: OrderItem[];
         paymentMethod: string;
+    };
+
+    type Customer = {
+        makh: number;
+        hoten: string;
+        gioitinh: string;
+        ngaysinh: string;
+        sdt: string;
+        email: string;
+        diachi: string;
+        diemtl: number;
+        mahanhg: number;
+        ngaytao: string;
+    };
+
+    // CustomerService.ts
+    type CustomerCheckRequest = {
+        makh: number;
+        hoten: string;
+        sdt: string;
+        diachi: string;
     };
 
     type ProductOrder = {
@@ -200,28 +221,28 @@ declare namespace Demo {
         date: string;
     };
 
-    //CustomerService
-    type Customer = {
-        id?: number;
-        name?: string;
-        country?: ICountryObject;
-        company?: string;
-        date: Date;
-        status?: string;
-        activity?: number;
-        balance?: number | string;
-        verified?: boolean;
-        amount?: number;
-        price?: number;
-        rating?: number;
-        image?: string;
-        orders?: Demo.Customer[];
-        inventoryStatus?: string;
-        representative: {
-            name: string;
-            image: string;
-        };
-    };
+    // //CustomerService
+    // type Customer = {
+    //     id?: number;
+    //     name?: string;
+    //     country?: ICountryObject;
+    //     company?: string;
+    //     date: Date;
+    //     status?: string;
+    //     activity?: number;
+    //     balance?: number | string;
+    //     verified?: boolean;
+    //     amount?: number;
+    //     price?: number;
+    //     rating?: number;
+    //     image?: string;
+    //     orders?: Demo.Customer[];
+    //     inventoryStatus?: string;
+    //     representative: {
+    //         name: string;
+    //         image: string;
+    //     };
+    // };
 
     interface Event extends EventInput {
         location?: string;
