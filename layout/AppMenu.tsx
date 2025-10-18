@@ -96,21 +96,26 @@ const AppMenu = () => {
                     icon: 'pi pi-truck',
                     to: '/pages/manageOrder/order'
                 },
+                // {
+                //     label: 'Timeline',
+                //     icon: 'pi pi-fw pi-calendar',
+                //     to: '/pages/timeline'
+                // },
+                // {
+                //     label: 'Not Found',
+                //     icon: 'pi pi-fw pi-exclamation-circle',
+                //     to: '/pages/notfound'
+                // },
+                // {
+                //     label: 'Empty',
+                //     icon: 'pi pi-fw pi-circle-off',
+                //     to: '/pages/empty'
+                // },
                 {
-                    label: 'Timeline',
-                    icon: 'pi pi-fw pi-calendar',
-                    to: '/pages/timeline'
+                    label: 'chat',
+                    icon: 'pi pi-fw pi-amazon',
+                    to: '/chat'
                 },
-                {
-                    label: 'Not Found',
-                    icon: 'pi pi-fw pi-exclamation-circle',
-                    to: '/pages/notfound'
-                },
-                {
-                    label: 'Empty',
-                    icon: 'pi pi-fw pi-circle-off',
-                    to: '/pages/empty'
-                }
             ]
         }
         // {
