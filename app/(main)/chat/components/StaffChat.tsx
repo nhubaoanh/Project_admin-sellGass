@@ -18,19 +18,20 @@ interface Message {
 interface StaffChatProps {
     userId: string;
     staffId: string;
+    roomId: string; // ✅ thêm vào đây
 }
 
-const StaffChat: React.FC<StaffChatProps> = ({ userId, staffId }) => {
+const StaffChat: React.FC<StaffChatProps> = ({ userId, staffId, roomId }) => {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
     const [isUserOnline, setIsUserOnline] = useState<boolean>(false);
-    const roomId = `chat_${userId}_${staffId}`;
     const scrollRef = useRef<ScrollPanel>(null);
     const socketRef = useRef<Socket | null>(null);
     const toastRef = useRef<Toast>(null);
 
-    // 🔗 Kết nối socket
     useEffect(() => {
+        if (!roomId) return;
+
         const socket = io('http://localhost:7890', {
             reconnection: true,
             reconnectionAttempts: 5,
@@ -40,14 +41,10 @@ const StaffChat: React.FC<StaffChatProps> = ({ userId, staffId }) => {
         socket.emit('join_room', roomId);
         socketRef.current = socket;
 
-        // Lắng nghe trạng thái online của user
         socket.on('user_status', (data: { userId: string; online: boolean }) => {
-            if (data.userId === userId) {
-                setIsUserOnline(data.online);
-            }
+            if (data.userId === userId) setIsUserOnline(data.online);
         });
 
-        // Lắng nghe tin nhắn và hiển thị thông báo
         socket.on('receive_message', (data) => {
             if (data.room === roomId) {
                 const newMsg = {
@@ -57,7 +54,6 @@ const StaffChat: React.FC<StaffChatProps> = ({ userId, staffId }) => {
                 };
                 setMessages((prev) => [...prev, newMsg]);
 
-                // Hiển thị thông báo khi nhận tin nhắn từ user
                 if (data.sender === 'user') {
                     toastRef.current?.show({
                         severity: 'info',
@@ -69,7 +65,6 @@ const StaffChat: React.FC<StaffChatProps> = ({ userId, staffId }) => {
             }
         });
 
-        // Xử lý lỗi kết nối
         socket.on('connect_error', (error) => {
             console.error('Socket connection error:', error);
         });
@@ -97,23 +92,13 @@ const StaffChat: React.FC<StaffChatProps> = ({ userId, staffId }) => {
     // ✉️ Gửi tin nhắn
     const sendMessage = () => {
         if (!message.trim() || !socketRef.current) return;
-
         socketRef.current.emit('send_message', {
             room: roomId,
             message,
             sender: 'staff',
             timestamp: new Date().toISOString()
         });
-
         setMessage('');
-    };
-
-    // ⌨️ Xử lý Enter / Shift+Enter
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
     };
 
     return (
@@ -127,7 +112,6 @@ const StaffChat: React.FC<StaffChatProps> = ({ userId, staffId }) => {
                     </div>
                 }
                 className="shadow-5 border-round-xl p-0 h-full"
-                style={{ background: '#ffffff' }}
             >
                 <div className="flex flex-column h-[75vh]">
                     <ScrollPanel ref={scrollRef} style={{ height: '60vh', background: '#f1f5f9' }} className="p-4">
@@ -154,19 +138,23 @@ const StaffChat: React.FC<StaffChatProps> = ({ userId, staffId }) => {
                     </ScrollPanel>
 
                     <Divider className="m-0" />
-
                     <div className="flex align-items-center gap-3 p-4 bg-white border-top-1 border-gray-200">
                         <InputTextarea
                             autoResize
                             rows={1}
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Nhập tin nhắn... (Enter để gửi, Shift+Enter để xuống dòng)"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    sendMessage();
+                                }
+                            }}
+                            placeholder="Nhập tin nhắn..."
                             className="flex-1 border-round-lg p-3 bg-gray-100"
                             style={{ maxHeight: '120px', fontSize: '1rem' }}
                         />
-                        <Button icon="pi pi-send" onClick={sendMessage} className="p-button-rounded p-button-success" style={{ padding: '0.75rem' }} />
+                        <Button icon="pi pi-send" onClick={sendMessage} className="p-button-rounded p-button-success" />
                     </div>
                 </div>
             </Card>

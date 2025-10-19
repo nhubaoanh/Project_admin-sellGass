@@ -33,7 +33,6 @@ const LandingPage = () => {
 
     const galleriaItemTemplate = (item: Demo.Photo) => <img src={`/${item.itemImageSrc}`} alt={item.alt} style={{ width: '100%', display: 'block' }} />;
     const galleriaThumbnailTemplate = (item: Demo.Photo) => <img src={`/${item.thumbnailImageSrc}`} alt={item.alt} style={{ width: '100%', display: 'block' }} />;
-    
 
     const listValue = [
         { name: 'San Francisco', code: 'SF' },
@@ -44,24 +43,29 @@ const LandingPage = () => {
         { name: 'Barcelona', code: 'BRC' },
         { name: 'Rome', code: 'RM' }
     ];
-    const [products, setProducts] = useState<Demo.Product[]>([]);
-    const [dataViewValue, setDataViewValue] = useState<Demo.Product[]>([]);
+    const [products, setProducts] = useState<Demo.sanpham[]>([]);
+    const [dataViewValue, setDataViewValue] = useState<Demo.sanpham[]>([]);
     const [globalFilterValue, setGlobalFilterValue] = useState('');
-    const [filteredValue, setFilteredValue] = useState<Demo.Product[] | null>(null);
+    const [filteredValue, setFilteredValue] = useState<Demo.sanpham[] | null>(null);
     const [sortKey, setSortKey] = useState(null);
     const [layout, setLayout] = useState<'grid' | 'list' | (string & Record<string, unknown>)>('grid');
     const [sortOrder, setSortOrder] = useState<0 | 1 | -1 | null>(null);
     const [sortField, setSortField] = useState('');
     const [orderlistValue, setOrderlistValue] = useState(listValue);
 
+    // Hàm định dạng sang VND để hiển thị
+    const formatVND = (value: number) => {
+        return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+    };
+
     useEffect(() => {
-        ProductService.getProductsSmall().then((products) => setProducts(products));
+        ProductService.getProdctNew().then((products) => setProducts(products));
 
         PhotoService.getImages().then((images) => setImages(images));
     }, []);
 
     useEffect(() => {
-        ProductService.getProducts().then((data) => setDataViewValue(data));
+        ProductService.getProdctNew().then((data) => setDataViewValue(data));
         setGlobalFilterValue('');
     }, []);
 
@@ -72,7 +76,7 @@ const LandingPage = () => {
             setFilteredValue(null);
         } else {
             const filtered = dataViewValue?.filter((product) => {
-                const productNameLowercase = product.name.toLowerCase();
+                const productNameLowercase = product.tensp.toLowerCase();
                 const searchValueLowercase = value.toLowerCase();
                 return productNameLowercase.includes(searchValueLowercase);
             });
@@ -86,6 +90,15 @@ const LandingPage = () => {
         router.push('/auth/login');
     };
 
+
+
+    const formatCurrency = (value: number | string | null | undefined) => {
+        if (value == null || isNaN(Number(value))) return 'N/A';
+        return Number(value).toLocaleString('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        });
+    };
     const carouselResponsiveOptions = [
         {
             breakpoint: '1024px',
@@ -108,16 +121,16 @@ const LandingPage = () => {
         { label: 'Price Low to High', value: 'price' }
     ];
 
-    const carouselItemTemplate = (product: Demo.Product) => {
+    const carouselItemTemplate = (product: Demo.sanpham) => {
         return (
             <div className="border-1 surface-border border-round m-1 text-center py-5">
                 <div className="mb-3">
-                    <img src={`/demo/images/product/${product.image}`} alt={product.name} className="w-6 shadow-2" />
+                    <img src={product.hinhanh} alt={product.tensp} className="w-6 shadow-2" />
                 </div>
                 <div>
-                    <h4 className="p-mb-1">{product.name}</h4>
-                    <h6 className="mt-0 mb-3">${product.price}</h6>
-                    <span className={`product-badge status-${product.inventoryStatus?.toLowerCase()}`}>{product.inventoryStatus}</span>
+                    <h4 className="p-mb-1">{product.tensp}</h4>
+                    <h6 className="mt-0 mb-3">{formatCurrency(product.gia)}</h6>
+                    {/* <span className={`product-badge status-${product.inventoryStatus?.toLowerCase()}`}>{product.inventoryStatus}</span> */}
                     <div className="car-buttons mt-5">
                         <Button type="button" className="mr-2" rounded icon="pi pi-search"></Button>
                         <Button type="button" className="mr-2" severity="success" rounded icon="pi pi-star"></Button>
@@ -152,57 +165,57 @@ const LandingPage = () => {
         </div>
     );
 
-    const dataviewListItem = (data: Demo.Product) => {
+    const dataviewListItem = (data: Demo.sanpham) => {
         return (
             <div className="col-12">
                 <div className="flex flex-column md:flex-row align-items-center p-3 w-full">
-                    <img src={`/demo/images/product/${data.image}`} alt={data.name} className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5" />
+                    <img src={data.hinhanh} alt={data.tensp} className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5" />
                     <div className="flex-1 flex flex-column align-items-center text-center md:text-left">
-                        <div className="font-bold text-2xl">{data.name}</div>
-                        <div className="mb-2">{data.description}</div>
-                        <Rating value={data.rating} readOnly cancel={false} className="mb-2"></Rating>
+                        <div className="font-bold text-2xl">{data.tensp}</div>
+                        <div className="mb-2">{data.mota}</div>
+                        {/* <Rating value={data.rating} readOnly cancel={false} className="mb-2"></Rating> */}
                         <div className="flex align-items-center">
                             <i className="pi pi-tag mr-2"></i>
-                            <span className="font-semibold">{data.category}</span>
+                            <span className="font-semibold">{data.maloai}</span>
                         </div>
                     </div>
                     <div className="flex flex-row md:flex-column justify-content-between w-full md:w-auto align-items-center md:align-items-end mt-5 md:mt-0">
-                        <span className="text-2xl font-semibold mb-2 align-self-center md:align-self-end">${data.price}</span>
-                        <Button icon="pi pi-shopping-cart" label="Add to Cart" disabled={data.inventoryStatus === 'OUTOFSTOCK'} size="small" className="mb-2"></Button>
-                        <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span>
+                        <span className="text-2xl font-semibold mb-2 align-self-center md:align-self-end">{formatCurrency(data.gia)}</span>
+                        {/* <Button icon="pi pi-shopping-cart" label="Add to Cart" disabled={data.inventoryStatus === 'OUTOFSTOCK'} size="small" className="mb-2"></Button> */}
+                        {/* <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span> */}
                     </div>
                 </div>
             </div>
         );
     };
 
-    const dataviewGridItem = (data: Demo.Product) => {
+    const dataviewGridItem = (data: Demo.sanpham) => {
         return (
             <div className="col-12 lg:col-4">
                 <div className="card m-3 border-1 surface-border">
                     <div className="flex flex-wrap gap-2 align-items-center justify-content-between mb-2">
                         <div className="flex align-items-center">
                             <i className="pi pi-tag mr-2" />
-                            <span className="font-semibold">{data.category}</span>
+                            <span className="font-semibold">{data.maloai}</span>
                         </div>
-                        <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span>
+                        {/* <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span> */}
                     </div>
                     <div className="flex flex-column align-items-center text-center mb-3">
-                        <img src={`/demo/images/product/${data.image}`} alt={data.name} className="w-9 shadow-2 my-3 mx-0" />
-                        <div className="text-2xl font-bold">{data.name}</div>
-                        <div className="mb-3">{data.description}</div>
-                        <Rating value={data.rating} readOnly cancel={false} />
+                        <img src={data.hinhanh} alt={data.tensp} className="w-9 shadow-2 my-3 mx-0" />
+                        <div className="text-2xl font-bold">{data.tensp}</div>
+                        <div className="mb-3">{data.mota}</div>
+                        {/* <Rating value={data.rating} readOnly cancel={false} /> */}
                     </div>
                     <div className="flex align-items-center justify-content-between">
-                        <span className="text-2xl font-semibold">${data.price}</span>
-                        <Button icon="pi pi-shopping-cart" disabled={data.inventoryStatus === 'OUTOFSTOCK'} />
+                        <span className="text-2xl font-semibold">{formatCurrency(data.gia)}</span>
+                        {/* <Button icon="pi pi-shopping-cart" disabled={data.inventoryStatus === 'OUTOFSTOCK'} /> */}
                     </div>
                 </div>
             </div>
         );
     };
 
-    const itemTemplate = (data: Demo.Product, layout: 'grid' | 'list' | (string & Record<string, unknown>)) => {
+    const itemTemplate = (data: Demo.sanpham, layout: 'grid' | 'list' | (string & Record<string, unknown>)) => {
         if (!data) {
             return;
         }

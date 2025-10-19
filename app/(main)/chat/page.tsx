@@ -1,22 +1,33 @@
-'use client';
-import dynamic from 'next/dynamic';
-import { useParams } from 'next/navigation';
 
-const ChatComponent = dynamic(() => import('./components/StaffChat'), {
-    ssr: false
-});
+
+
+'use client';
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
+import StaffNotification from './components/StaffNotification';
+import { ChatService } from '@/demo/service/ChatService';
+
+const ChatComponent = dynamic(() => import('./components/StaffChat'), { ssr: false });
 
 export default function StaffChatPage() {
+    const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+    const [roomId, setRoomId] = useState<string | null>(null);
+    const staffId = '1';
 
-    //  check được user id nè
-    const params = useParams();
-    const userId = '2'; // Tạm thời để cứng, sau này lấy từ context/params
-    const staffId = '1'; // Tạm thời để cứng
+    const handleSelectCustomer = async (customer: any) => {
+        setSelectedCustomer(customer);
+        const res = await ChatService.createRoom(customer.id, staffId);
+        setRoomId(res.roomId);
+    };
 
     return (
         <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">Trò chuyện với khách hàng</h1>
-            <ChatComponent userId={userId} staffId={staffId} />
+            <div className="flex justify-content-between align-items-center mb-4">
+                <h1 className="text-2xl font-bold">Quản lý tin nhắn</h1>
+                <StaffNotification onSelectCustomer={handleSelectCustomer} />
+            </div>
+
+            {selectedCustomer && roomId ? <ChatComponent userId={selectedCustomer.id} staffId={staffId} roomId={roomId} /> : <p className="text-gray-600">💬 Chưa chọn khách hàng nào.</p>}
         </div>
     );
 }
