@@ -33,7 +33,7 @@ const LoginPage = () => {
             console.log('Token:', userStorage.getCurrentToken());
 
             alert('Đăng nhập thành công!');
-            router.push('/');
+            router.push('/dashboard');
         } else {
             alert('Sai thông tin đăng nhập');
         }

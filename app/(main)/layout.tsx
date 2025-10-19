@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     viewport: { initialScale: 1, width: 'device-width' },
     openGraph: {
         type: 'website',
-        title: 'PrimeReact SAKAI-REACT',
+        title: 'Nhu bao anh (Kiwi) - SomeGass',
         url: 'https://sakai.primereact.org/',
         description: 'The ultimate collection of design-agnostic, flexible and accessible React UI Components.',
         images: ['https://www.primefaces.org/static/social/sakai-react.png'],

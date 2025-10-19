@@ -7,11 +7,11 @@ export const ProductService = {
             .then((d) => d.data as Demo.Product[]);
     },
 
-    // getProducts() {
-    //     return fetch('/demo/data/products.json', { headers: { 'Cache-Control': 'no-cache' } })
-    //         .then((res) => res.json())
-    //         .then((d) => d.data as Demo.Product[]);
-    // },
+    getProducts() {
+        return fetch('/demo/data/products.json', { headers: { 'Cache-Control': 'no-cache' } })
+            .then((res) => res.json())
+            .then((d) => d.data as Demo.Product[]);
+    },
 
     getProdctNew() {
         return fetch('http://localhost:7890/api/sanpham', { headers: { 'Cache-Control': 'no-cache' } })
@@ -81,9 +81,9 @@ export const ProductService = {
         });
     },
 
-    // getProductsWithOrdersSmall() {
-    //     return fetch('/demo/data/products-orders-small.json', { headers: { 'Cache-Control': 'no-cache' } })
-    //         .then((res) => res.json())
-    //         .then((d) => d.data as Demo.Product[]);
-    // }
+    getProductsWithOrdersSmall() {
+        return fetch('/demo/data/products-orders-small.json', { headers: { 'Cache-Control': 'no-cache' } })
+            .then((res) => res.json())
+            .then((d) => d.data as Demo.Product[]);
+    }
 };

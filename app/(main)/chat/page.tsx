@@ -7,8 +7,10 @@ const ChatComponent = dynamic(() => import('./components/StaffChat'), {
 });
 
 export default function StaffChatPage() {
+
+    //  check được user id nè
     const params = useParams();
-    const userId = '3'; // Tạm thời để cứng, sau này lấy từ context/params
+    const userId = '2'; // Tạm thời để cứng, sau này lấy từ context/params
     const staffId = '1'; // Tạm thời để cứng
 
     return (
