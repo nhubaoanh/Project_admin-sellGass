@@ -90,6 +90,10 @@ const LandingPage = () => {
         router.push('/auth/login');
     };
 
+    const handleRegister = () => {
+        router.push('/auth/register');
+    };
+
 
 
     const formatCurrency = (value: number | string | null | undefined) => {
@@ -202,7 +206,8 @@ const LandingPage = () => {
                         {/* <span className={`product-badge status-${data.inventoryStatus?.toLowerCase()}`}>{data.inventoryStatus}</span> */}
                     </div>
                     <div className="flex flex-column align-items-center text-center mb-3">
-                        <img src={data.hinhanh} alt={data.tensp} className="w-9 shadow-2 my-3 mx-0" />
+                        {/* <img src={data.hinhanh} alt={data.tensp} className="w-9 shadow-2 my-3 mx-0" /> */}
+                        <Image src={data.hinhanh} width="250px" preview />
                         <div className="text-2xl font-bold">{data.tensp}</div>
                         <div className="mb-3">{data.mota}</div>
                         {/* <Rating value={data.rating} readOnly cancel={false} /> */}
@@ -256,8 +261,9 @@ const LandingPage = () => {
             <div id="home" className="landing-wrapper overflow-hidden">
                 <div className="py-4 px-4 mx-0 md:mx-6 lg:mx-8 lg:px-8 flex align-items-center justify-content-between relative lg:static">
                     <Link href="/" className="flex align-items-center">
-                        <img src={`/layout/images/${layoutConfig.colorScheme === 'light' ? 'logo-dark' : 'logo-white'}.svg`} alt="Sakai Logo" height="50" className="mr-0 lg:mr-2" />
-                        <span className="text-900 font-medium text-2xl line-height-3 mr-8">Growby</span>
+                        {/* <img src={`/layout/images/${layoutConfig.colorScheme === 'light' ? 'logo-dark' : 'logo-white'}.svg`} alt="Sakai Logo" height="50" className="mr-0 lg:mr-2" /> */}
+                        <i className=''></i>
+                        <span className="text-900 font-medium text-2xl line-height-3 mr-8 border-2 border-circle px-2 py-1">Growby</span>
                     </Link>
                     <StyleClass nodeRef={menuRef as NodeRef} selector="@next" enterClassName="hidden" leaveToClassName="hidden" hideOnOutsideClick>
                         <i ref={menuRef} className="pi pi-bars text-4xl cursor-pointer block lg:hidden text-700"></i>
@@ -291,7 +297,7 @@ const LandingPage = () => {
                         </ul>
                         <div className="flex justify-content-between lg:block border-top-1 lg:border-top-none surface-border py-3 lg:py-0 mt-3 lg:mt-0">
                             <Button label="Login" text rounded className="border-none font-light line-height-2 text-blue-500" onClick={() => handleLogin()}></Button>
-                            <Button label="Register" rounded className="border-none ml-5 font-light line-height-2 bg-blue-500 text-white"></Button>
+                            <Button label="Register" rounded className="border-none ml-5 font-light line-height-2 bg-blue-500 text-white" onClick={() => handleRegister()}></Button>
                         </div>
                     </div>
                 </div>
@@ -301,7 +307,7 @@ const LandingPage = () => {
                     <div className="relative z-10 md:max-w-lg text-center md:text-left">
                         <h1 className="text-4xl md:text-6xl font-bold text-gray-900">Shop Your Glasses</h1>
                         <p className="mt-4 text-lg md:text-2xl text-gray-700">Choose the pair of glasses that suits you best and looks the most beautiful...</p>
-                        <button className="mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg text-lg md:text-xl hover:bg-blue-600 transition">Get Started</button>
+                        <button className="mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg text-lg md:text-xl hover:bg-blue-600 transition border-1 border-blue-500 ">Get Started</button>
                     </div>
 
                     {/* Ảnh lồng bên phải */}
@@ -341,14 +347,14 @@ const LandingPage = () => {
                             </div>
                         </div>
 
-                        <div className="col-12">
+                        {/* <div className="col-12">
                             <div className="card">
                                 <h5>Image</h5>
                                 <div className="flex justify-content-center">
                                     <Image src={`/demo/images/galleria/galleria10.jpg`} alt="Image" width="250" preview />
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
 
                         <div className="col-12">
                             <div className="card">

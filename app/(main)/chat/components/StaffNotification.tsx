@@ -23,7 +23,11 @@ const StaffNotification: React.FC<StaffNotificationProps> = ({ onSelectCustomer 
     const opRef = React.useRef<OverlayPanel>(null);
 
     useEffect(() => {
-        const s = io('http://localhost:7890');
+        const s = io('https://kdckwr3m-7890.asse.devtunnels.ms', {
+            transports: ['websocket'],
+            reconnection: true
+        });
+
         setSocket(s);
 
         // 🟢 Lắng nghe sự kiện khi khách hàng gửi tin nhắn
