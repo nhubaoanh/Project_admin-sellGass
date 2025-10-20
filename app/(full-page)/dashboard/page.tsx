@@ -14,6 +14,10 @@ import { ChartData, ChartOptions } from 'chart.js';
 import { useRouter } from 'next/navigation';
 import { ProductService } from '@/demo/service/ProductService';
 import { LayoutContext } from '@/layout/context/layoutcontext';
+import { OrderService } from '@/demo/service/OrderService';
+import { Dropdown } from 'primereact/dropdown';
+import { Card } from 'primereact/card';
+import { Calendar } from 'primereact/calendar';
 // import { useRouter } from 'next/router';
 
 const lineData: ChartData = {
@@ -38,95 +42,92 @@ const lineData: ChartData = {
     ]
 };
 
+interface DashboardOverview {
+    total_orders: number;
+    total_revenue: number;
+    total_customers: number;
+    new_orders_today: number;
+    total_hot_products: number;
+}
+
+interface DailyStat {
+    ngay: string;
+    so_don: number;
+    tong_doanh_thu: string;
+}
+
 const Dashboard = () => {
-    const [products, setProducts] = useState<Demo.Product[]>([]);
+    const [products, setProducts] = useState<Demo.sanpham[]>([]);
+    const [overview, setOverview] = useState<DashboardOverview | null>(null);
     const menu1 = useRef<Menu>(null);
     const menu2 = useRef<Menu>(null);
     const [lineOptions, setLineOptions] = useState<ChartOptions>({});
     const { layoutConfig } = useContext(LayoutContext);
-
-    const applyLightTheme = () => {
-        const lineOptions: ChartOptions = {
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#495057'
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    ticks: {
-                        color: '#495057'
-                    },
-                    grid: {
-                        color: '#ebedef'
-                    }
-                },
-                y: {
-                    ticks: {
-                        color: '#495057'
-                    },
-                    grid: {
-                        color: '#ebedef'
-                    }
-                }
-            }
-        };
-
-        setLineOptions(lineOptions);
-    };
-
-    const applyDarkTheme = () => {
-        const lineOptions = {
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#ebedef'
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    ticks: {
-                        color: '#ebedef'
-                    },
-                    grid: {
-                        color: 'rgba(160, 167, 181, .3)'
-                    }
-                },
-                y: {
-                    ticks: {
-                        color: '#ebedef'
-                    },
-                    grid: {
-                        color: 'rgba(160, 167, 181, .3)'
-                    }
-                }
-            }
-        };
-
-        setLineOptions(lineOptions);
-    };
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [dailyStats, setDailyStats] = useState<DailyStat[]>([]);
+    const [currentStat, setCurrentStat] = useState<DailyStat | null>(null);
+    const [previousStat, setPreviousStat] = useState<DailyStat | null>(null);
+    const formatDate = (date: Date) => date.toISOString().slice(0, 10);
+    
 
     useEffect(() => {
-        ProductService.getProductsSmall().then((data) => setProducts(data));
+        const res = ProductService.getProductHot().then((data) => setProducts(data));
+        const data = OrderService.getDashBroad().then((data) => {
+            setOverview(data.overview);
+            setDailyStats(data.dailyStats);
+        });
+        console.log('Danh sách order:', data);
+        console.log('Danh sách sản phẩm hot:', res);
     }, []);
 
     useEffect(() => {
-        if (layoutConfig.colorScheme === 'light') {
-            applyLightTheme();
-        } else {
-            applyDarkTheme();
-        }
-    }, [layoutConfig.colorScheme]);
+        if (selectedDate) {
+            const dateStr = formatDate(selectedDate);
+            const current = dailyStats.find((ds) => ds.ngay.slice(0, 10) === dateStr) || null;
+            setCurrentStat(current);
 
-    const formatCurrency = (value: number) => {
-        return value?.toLocaleString('en-US', {
+            // Tìm ngày trước đó
+            const sortedStats = [...dailyStats].sort((a, b) => new Date(a.ngay).getTime() - new Date(b.ngay).getTime());
+            const index = sortedStats.findIndex((ds) => ds.ngay.slice(0, 10) === dateStr);
+            setPreviousStat(index > 0 ? sortedStats[index - 1] : null);
+        } else {
+            setCurrentStat(null);
+            setPreviousStat(null);
+        }
+    }, [selectedDate, dailyStats]);
+
+    const formatCurrency = (value: number | string | null | undefined) => {
+        return Number(value).toLocaleString('vi-VN', {
             style: 'currency',
-            currency: 'USD'
+            currency: 'VND'
         });
     };
+     const getDelta = (current: number, previous?: number | null) => {
+         if (!previous) return 0;
+         return current - previous;
+     };
+
+
+     const handleDateChange = (e: { value: Date | null | undefined }) => {
+         if (e.value) {
+             setSelectedDate(e.value);
+             const selectedStr = e.value.toISOString().slice(0, 10);
+             const current = dailyStats.find((ds) => ds.ngay.slice(0, 10) === selectedStr) || null;
+             setCurrentStat(current);
+
+             // Tìm ngày trước đó
+             const sortedStats = [...dailyStats].sort((a, b) => new Date(a.ngay).getTime() - new Date(b.ngay).getTime());
+             const index = sortedStats.findIndex((ds) => ds.ngay.slice(0, 10) === selectedStr);
+             setPreviousStat(index > 0 ? sortedStats[index - 1] : null);
+         } else {
+             setSelectedDate(null);
+             setCurrentStat(null);
+             setPreviousStat(null);
+         }
+     };
+
+     
+
 
     return (
         <div className="grid">
@@ -135,46 +136,49 @@ const Dashboard = () => {
                     <div className="flex justify-content-between mb-3">
                         <div>
                             <span className="block text-500 font-medium mb-3">Orders</span>
-                            <div className="text-900 font-medium text-xl">152</div>
+                            <div className="text-900 font-medium text-xl">{overview?.total_orders}</div>
                         </div>
                         <div className="flex align-items-center justify-content-center bg-blue-100 border-round" style={{ width: '2.5rem', height: '2.5rem' }}>
                             <i className="pi pi-shopping-cart text-blue-500 text-xl" />
                         </div>
                     </div>
-                    <span className="text-green-500 font-medium">24 new </span>
+                    <span className="text-green-500 font-medium">{overview?.new_orders_today} new </span>
                     <span className="text-500">since last visit</span>
                 </div>
             </div>
+
             <div className="col-12 lg:col-6 xl:col-3">
                 <div className="card mb-0">
                     <div className="flex justify-content-between mb-3">
                         <div>
                             <span className="block text-500 font-medium mb-3">Revenue</span>
-                            <div className="text-900 font-medium text-xl">$2.100</div>
+                            <div className="text-900 font-medium text-xl">{formatCurrency(overview?.total_revenue)}</div>
                         </div>
                         <div className="flex align-items-center justify-content-center bg-orange-100 border-round" style={{ width: '2.5rem', height: '2.5rem' }}>
-                            <i className="pi pi-map-marker text-orange-500 text-xl" />
+                            <i className="pi pi-dollar text-orange-500 text-xl" />
                         </div>
                     </div>
-                    <span className="text-green-500 font-medium">%52+ </span>
+                    <span className="text-green-500 font-medium">% update </span>
                     <span className="text-500">since last week</span>
                 </div>
             </div>
+
             <div className="col-12 lg:col-6 xl:col-3">
                 <div className="card mb-0">
                     <div className="flex justify-content-between mb-3">
                         <div>
                             <span className="block text-500 font-medium mb-3">Customers</span>
-                            <div className="text-900 font-medium text-xl">28441</div>
+                            <div className="text-900 font-medium text-xl">{overview?.total_customers}</div>
                         </div>
                         <div className="flex align-items-center justify-content-center bg-cyan-100 border-round" style={{ width: '2.5rem', height: '2.5rem' }}>
-                            <i className="pi pi-inbox text-cyan-500 text-xl" />
+                            <i className="pi pi-users text-cyan-500 text-xl" />
                         </div>
                     </div>
-                    <span className="text-green-500 font-medium">520 </span>
-                    <span className="text-500">newly registered</span>
+                    <span className="text-green-500 font-medium">{overview?.total_hot_products} hot </span>
+                    <span className="text-500">products</span>
                 </div>
             </div>
+
             <div className="col-12 lg:col-6 xl:col-3">
                 <div className="card mb-0">
                     <div className="flex justify-content-between mb-3">
@@ -197,9 +201,9 @@ const Dashboard = () => {
                 <div className="card">
                     <h5>Recent Sales</h5>
                     <DataTable value={products} rows={5} paginator responsiveLayout="scroll">
-                        <Column header="Image" body={(data) => <img className="shadow-2" src={`/demo/images/product/${data.image}`} alt={data.image} width="50" />} />
-                        <Column field="name" header="Name" sortable style={{ width: '35%' }} />
-                        <Column field="price" header="Price" sortable style={{ width: '35%' }} body={(data) => formatCurrency(data.price)} />
+                        <Column header="Image" body={(data) => <img className="shadow-2" src={data.hinhanh} alt={data.tensp} width="50" />} />
+                        <Column field="tensp" header="Name" sortable style={{ width: '35%' }} />
+                        <Column field="price" header="Price" sortable style={{ width: '35%' }} body={(data) => formatCurrency(data.gia)} />
                         <Column
                             header="View"
                             style={{ width: '15%' }}
@@ -211,95 +215,48 @@ const Dashboard = () => {
                         />
                     </DataTable>
                 </div>
-                <div className="card">
-                    <div className="flex justify-content-between align-items-center mb-5">
-                        <h5>Best Selling Products</h5>
-                        <div>
-                            <Button type="button" icon="pi pi-ellipsis-v" rounded text className="p-button-plain" onClick={(event) => menu1.current?.toggle(event)} />
-                            <Menu
-                                ref={menu1}
-                                popup
-                                model={[
-                                    { label: 'Add New', icon: 'pi pi-fw pi-plus' },
-                                    { label: 'Remove', icon: 'pi pi-fw pi-minus' }
-                                ]}
-                            />
+
+                <div className="card p-4">
+                    <h5 className="mb-4">Daily Statistics</h5>
+
+                    <Calendar value={selectedDate} onChange={handleDateChange} showIcon placeholder="Chọn ngày" className="mb-5 w-full" />
+
+                    {currentStat ? (
+                        <div className="grid gap-4">
+                            <div className="col-12 md:col-4">
+                                <Card className="p-3 text-center surface-100">
+                                    <div className="text-500 font-medium mb-2">Ngày</div>
+                                    <div className="text-900 font-bold text-lg">{currentStat.ngay.slice(0, 10)}</div>
+                                </Card>
+                            </div>
+                            <div className="col-12 md:col-4">
+                                <Card className="p-3 text-center surface-100">
+                                    <div className="text-500 font-medium mb-2">Số đơn</div>
+                                    <div className="text-900 font-bold text-lg">{currentStat.so_don}</div>
+                                    {previousStat && (
+                                        <div className={`mt-1 text-sm ${getDelta(currentStat.so_don, previousStat.so_don) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                            {getDelta(currentStat.so_don, previousStat.so_don) >= 0 ? '+' : ''}
+                                            {getDelta(currentStat.so_don, previousStat.so_don)}
+                                        </div>
+                                    )}
+                                </Card>
+                            </div>
+                            <div className="col-12 md:col-4">
+                                <Card className="p-3 text-center surface-100">
+                                    <div className="text-500 font-medium mb-2">Doanh thu</div>
+                                    <div className="text-900 font-bold text-lg">{Number(currentStat.tong_doanh_thu).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</div>
+                                    {previousStat && (
+                                        <div className={`mt-1 text-sm ${getDelta(Number(currentStat.tong_doanh_thu), Number(previousStat.tong_doanh_thu)) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                            {getDelta(Number(currentStat.tong_doanh_thu), Number(previousStat.tong_doanh_thu)) >= 0 ? '+' : ''}
+                                            {getDelta(Number(currentStat.tong_doanh_thu), Number(previousStat.tong_doanh_thu)).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                                        </div>
+                                    )}
+                                </Card>
+                            </div>
                         </div>
-                    </div>
-                    <ul className="list-none p-0 m-0">
-                        <li className="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
-                            <div>
-                                <span className="text-900 font-medium mr-2 mb-1 md:mb-0">Space T-Shirt</span>
-                                <div className="mt-1 text-600">Clothing</div>
-                            </div>
-                            <div className="mt-2 md:mt-0 flex align-items-center">
-                                <div className="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style={{ height: '8px' }}>
-                                    <div className="bg-orange-500 h-full" style={{ width: '50%' }} />
-                                </div>
-                                <span className="text-orange-500 ml-3 font-medium">%50</span>
-                            </div>
-                        </li>
-                        <li className="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
-                            <div>
-                                <span className="text-900 font-medium mr-2 mb-1 md:mb-0">Portal Sticker</span>
-                                <div className="mt-1 text-600">Accessories</div>
-                            </div>
-                            <div className="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
-                                <div className="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style={{ height: '8px' }}>
-                                    <div className="bg-cyan-500 h-full" style={{ width: '16%' }} />
-                                </div>
-                                <span className="text-cyan-500 ml-3 font-medium">%16</span>
-                            </div>
-                        </li>
-                        <li className="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
-                            <div>
-                                <span className="text-900 font-medium mr-2 mb-1 md:mb-0">Supernova Sticker</span>
-                                <div className="mt-1 text-600">Accessories</div>
-                            </div>
-                            <div className="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
-                                <div className="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style={{ height: '8px' }}>
-                                    <div className="bg-pink-500 h-full" style={{ width: '67%' }} />
-                                </div>
-                                <span className="text-pink-500 ml-3 font-medium">%67</span>
-                            </div>
-                        </li>
-                        <li className="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
-                            <div>
-                                <span className="text-900 font-medium mr-2 mb-1 md:mb-0">Wonders Notebook</span>
-                                <div className="mt-1 text-600">Office</div>
-                            </div>
-                            <div className="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
-                                <div className="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style={{ height: '8px' }}>
-                                    <div className="bg-green-500 h-full" style={{ width: '35%' }} />
-                                </div>
-                                <span className="text-green-500 ml-3 font-medium">%35</span>
-                            </div>
-                        </li>
-                        <li className="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
-                            <div>
-                                <span className="text-900 font-medium mr-2 mb-1 md:mb-0">Mat Black Case</span>
-                                <div className="mt-1 text-600">Accessories</div>
-                            </div>
-                            <div className="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
-                                <div className="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style={{ height: '8px' }}>
-                                    <div className="bg-purple-500 h-full" style={{ width: '75%' }} />
-                                </div>
-                                <span className="text-purple-500 ml-3 font-medium">%75</span>
-                            </div>
-                        </li>
-                        <li className="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
-                            <div>
-                                <span className="text-900 font-medium mr-2 mb-1 md:mb-0">Robots T-Shirt</span>
-                                <div className="mt-1 text-600">Clothing</div>
-                            </div>
-                            <div className="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
-                                <div className="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style={{ height: '8px' }}>
-                                    <div className="bg-teal-500 h-full" style={{ width: '40%' }} />
-                                </div>
-                                <span className="text-teal-500 ml-3 font-medium">%40</span>
-                            </div>
-                        </li>
-                    </ul>
+                    ) : (
+                        <div className="text-center text-500 mt-3">Chưa chọn ngày hoặc không có dữ liệu</div>
+                    )}
                 </div>
             </div>
 
@@ -308,8 +265,6 @@ const Dashboard = () => {
                     <h5>Sales Overview</h5>
                     <Chart type="line" data={lineData} options={lineOptions} />
                 </div>
-
-
             </div>
         </div>
     );

@@ -67,5 +67,25 @@ export const OrderService = {
             console.error('Create order failed:', error);
             throw error;
         }
+    },
+
+    async getDashBroad() {
+        try {
+            const res = await fetch('http://localhost:7890/api/orders/dashboarddata', {
+                method: 'POST', // POST thay vì GET
+                headers: { 'Cache-Control': 'no-cache', 'Content-Type': 'application/json' }
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+
+            const data = await res.json();
+            console.log('Dữ liệu trả về:', data);
+            return data.data; // data = { overview, dailyStats }
+        } catch (error) {
+            console.error('Lỗi khi lấy dashboard:', error);
+            throw error;
+        }
     }
 };

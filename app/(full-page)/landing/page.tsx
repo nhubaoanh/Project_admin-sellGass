@@ -51,12 +51,12 @@ const LandingPage = () => {
     const [layout, setLayout] = useState<'grid' | 'list' | (string & Record<string, unknown>)>('grid');
     const [sortOrder, setSortOrder] = useState<0 | 1 | -1 | null>(null);
     const [sortField, setSortField] = useState('');
-    const [orderlistValue, setOrderlistValue] = useState(listValue);
+    // const [orderlistValue, setOrderlistValue] = useState(listValue);
 
-    // Hàm định dạng sang VND để hiển thị
-    const formatVND = (value: number) => {
-        return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
-    };
+    // // Hàm định dạng sang VND để hiển thị
+    // const formatVND = (value: number) => {
+    //     return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+    // };
 
     useEffect(() => {
         ProductService.getProdctNew().then((products) => setProducts(products));
@@ -125,7 +125,8 @@ const LandingPage = () => {
         return (
             <div className="border-1 surface-border border-round m-1 text-center py-5">
                 <div className="mb-3">
-                    <img src={product.hinhanh} alt={product.tensp} className="w-6 shadow-2" />
+                    {/* <img src={product.hinhanh} alt={product.tensp} className="w-6 shadow-2" /> */}
+                    <Image src={product.hinhanh} width='250px' preview/>
                 </div>
                 <div>
                     <h4 className="p-mb-1">{product.tensp}</h4>
@@ -295,23 +296,17 @@ const LandingPage = () => {
                     </div>
                 </div>
 
-                <div
-                    id="hero"
-                    className="flex flex-column pt-4 px-4 lg:px-8 overflow-hidden"
-                    style={{
-                        background: 'linear-gradient(0deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)), radial-gradient(77.36% 256.97% at 77.36% 57.52%, #EEEFAF 0%, #C3E3FA 100%)',
-                        clipPath: 'ellipse(150% 87% at 93% 13%)'
-                    }}
-                >
-                    <div className="mx-4 md:mx-8 mt-0 md:mt-4">
-                        <h1 className="text-6xl font-bold text-gray-900 line-height-2">
-                            <span className="font-light block">Eu sem integer</span>eget magna fermentum
-                        </h1>
-                        <p className="font-normal text-2xl line-height-3 md:mt-3 text-gray-700">Sed blandit libero volutpat sed cras. Fames ac turpis egestas integer. Placerat in egestas erat... </p>
-                        <Button type="button" label="Get Started" rounded className="text-xl border-none mt-3 bg-blue-500 font-normal line-height-3 px-3 text-white"></Button>
+                <div id="hero" className="relative flex flex-col md:flex-row items-center justify-between px-4 lg:px-16 py-20 overflow-hidden bg-gradient-to-r from-yellow-100 via-blue-100 to-blue-200" style={{ minHeight: '400px' }}>
+                    {/* Text bên trái */}
+                    <div className="relative z-10 md:max-w-lg text-center md:text-left">
+                        <h1 className="text-4xl md:text-6xl font-bold text-gray-900">Shop Your Glasses</h1>
+                        <p className="mt-4 text-lg md:text-2xl text-gray-700">Choose the pair of glasses that suits you best and looks the most beautiful...</p>
+                        <button className="mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg text-lg md:text-xl hover:bg-blue-600 transition">Get Started</button>
                     </div>
-                    <div className="flex justify-content-center md:justify-content-end">
-                        <img src="/demo/images/landing/screen-1.png" alt="Hero Image" className="w-9 md:w-auto" />
+
+                    {/* Ảnh lồng bên phải */}
+                    <div className="relative w-full md:w-1/2 mt-10 md:mt-0">
+                        <img src="/demo/images/landing/banner.png" alt="Hero Image" className="w-full h-auto object-contain" />
                     </div>
                 </div>
 

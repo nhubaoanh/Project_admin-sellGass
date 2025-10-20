@@ -81,6 +81,18 @@ export const ProductService = {
         });
     },
 
+    getProductHot() {
+        return fetch('http://localhost:7890/api/sanpham/noibat', { 
+            method: 'POST',
+            headers: { 'Cache-Control': 'no-cache' } })
+            .then((res) => res.json())
+            .then((d) => {
+                console.log('Dữ liệu trả về:', d);
+                // return d.data; // hoặc return d nếu không có d.data
+                return d as Demo.sanpham[];
+            });
+    },
+
     getProductsWithOrdersSmall() {
         return fetch('/demo/data/products-orders-small.json', { headers: { 'Cache-Control': 'no-cache' } })
             .then((res) => res.json())
